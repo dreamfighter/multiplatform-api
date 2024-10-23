@@ -12,7 +12,7 @@ plugins {
     alias(libs.plugins.serializationPlugin)
     id("module.publication")
     id("io.github.ttypic.swiftklib") version "0.6.3"
-    id("com.google.devtools.ksp") version "2.0.21-1.0.25"
+    //id("com.google.devtools.ksp") version "2.0.21-1.0.25"
 }
 
 kotlin {
@@ -56,6 +56,7 @@ kotlin {
             //implementation(libs.github.mirzemehdi.google)
         }
         jvmMain.dependencies {
+            implementation(libs.ktor.client.okhttp)
             implementation(libs.kotlinx.coroutines.core)
         }
         androidMain.dependencies {
@@ -66,7 +67,7 @@ kotlin {
             implementation(compose.components.resources)
             implementation(libs.ktor.client.okhttp)
             //implementation(libs.github.mirzemehdi.google)
-            implementation("com.google.devtools.ksp:symbol-processing-api:2.0.21-1.0.25")
+            //implementation("com.google.devtools.ksp:symbol-processing-api:2.0.21-1.0.25")
         }
         val commonMain by getting {
             dependencies {
@@ -92,6 +93,8 @@ kotlin {
         val commonTest by getting {
             dependencies {
                 implementation(libs.kotlinx.coroutines.core)
+                implementation(libs.kotlinx.coroutines.test)
+
                 implementation(libs.slf4j.simple)
                 implementation(libs.kotlin.test)
                 implementation(libs.system.lambda)

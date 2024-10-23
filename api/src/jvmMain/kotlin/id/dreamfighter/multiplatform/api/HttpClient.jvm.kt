@@ -1,25 +1,91 @@
 package id.dreamfighter.multiplatform.api
 
+import id.dreamfighter.multiplatform.api.model.Get
+import id.dreamfighter.multiplatform.api.model.Path
+import id.dreamfighter.multiplatform.api.model.Post
+import id.dreamfighter.multiplatform.api.model.Query
+import id.dreamfighter.multiplatform.api.model.Request
 import io.ktor.client.HttpClient
-import java.util.Locale
-import kotlin.reflect.jvm.internal.impl.metadata.jvm.deserialization.JvmMemberSignature.Field
-import kotlin.reflect.jvm.kotlinFunction
-import kotlin.reflect.jvm.kotlinProperty
+import io.ktor.client.engine.okhttp.OkHttp
+import io.ktor.client.plugins.HttpTimeout
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.defaultRequest
+import io.ktor.client.plugins.logging.DEFAULT
+import io.ktor.client.plugins.logging.LogLevel
+import io.ktor.client.plugins.logging.Logger
+import io.ktor.client.plugins.logging.Logging
+import io.ktor.client.request.header
+import io.ktor.serialization.kotlinx.json.json
+import kotlinx.serialization.json.Json
+import kotlin.reflect.full.memberProperties
 
-actual val client: HttpClient
-    get() = TODO("Not yet implemented")
-
-
-actual inline fun <reified T : Any> getProperties(obj: T): Map<String, Any?> {
-    val fields = mutableMapOf<String, Any?>()
-
-    obj::class.java.methods.forEach { method ->
-        if(method.name.startsWith("get"))
-        println("${method.invoke(Unit)} = ${method.name}")
+actual val client: HttpClient = HttpClient(OkHttp) {
+    install(HttpTimeout) {
+        socketTimeoutMillis = 60_000
+        requestTimeoutMillis = 60_000
     }
-    obj.javaClass.declaredFields.forEach { field ->
-
-        fields[field.name] = "it.name"
+    install(Logging) {
+        logger = Logger.DEFAULT
+        level = LogLevel.ALL
     }
-    return fields
+    defaultRequest {
+        header("Content-Type", "application/json")
+        url(BASE_URL)
+    }
+    install(ContentNegotiation){
+        json(Json{
+            isLenient = true
+            ignoreUnknownKeys = true
+            explicitNulls = false
+        })
+    }
+}
+
+actual inline fun <reified T : Any> getRequest(obj: T): Request {
+
+    val methods = obj::class.annotations.filter {
+        it is Get || it is Post
+    }
+    if(methods.isNotEmpty()){
+        var method = ""
+        var url = ""
+        val path: MutableMap<String, Any?> = mutableMapOf()
+        val query:MutableMap<String,Any?> = mutableMapOf()
+        when(val annotation = methods.first()){
+            is Get -> {
+                method = HttpMethod.GET
+                url = annotation.url
+            }
+            is Post -> {
+                method = HttpMethod.POST
+                url = annotation.url
+            }
+        }
+
+        obj::class.memberProperties.forEach { prop ->
+            prop.annotations.forEach {
+                when(it){
+                    is Path -> {
+                        val name = if(it.name == ""){
+                            prop.name
+                        }else{
+                            it.name
+                        }
+                        path[name] = prop.getter.call(obj)
+                    }
+                    is Query -> {
+                        val name = if(it.name == ""){
+                            prop.name
+                        }else{
+                            it.name
+                        }
+                        query[name] = prop.getter.call(obj)
+                    }
+                }
+            }
+        }
+        return Request(url = url, method = method, path = path, query = query)
+    }else{
+        throw Exception("Method not found")
+    }
 }
