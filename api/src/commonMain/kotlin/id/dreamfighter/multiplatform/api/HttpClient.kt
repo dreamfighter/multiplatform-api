@@ -8,41 +8,54 @@ import io.ktor.client.plugins.RedirectResponseException
 import io.ktor.client.plugins.ServerResponseException
 import io.ktor.client.request.forms.submitForm
 import io.ktor.http.parameters
+import kotlinx.coroutines.flow.flow
+import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
+import kotlin.reflect.KFunction1
 
 expect val client: HttpClient
 
-interface ApiClient{
+expect inline fun <reified T : Any> getProperties(obj:T):Map<String,Any?>
 
-}
+@Target(AnnotationTarget.CLASS)
+@Retention(AnnotationRetention.SOURCE)
+@MustBeDocumented
+annotation class Request(val value: String)
 
-suspend inline fun <reified T> post(api:(KFunction<out T>)->Unit):Resource<T>{
 
-    try {
-        val response = client.submitForm (
-            url = "https://oauth2.googleapis.com/token",
-            formParameters = parameters {
-                append("grant_type","authorization_code")
-                append("redirect_uri","http://localhost:9002/auth")
-            }
-        )
-        return Resource.Success(response.body())
-    } catch (e: RedirectResponseException) {
-        // handle 3xx codes
-        return (Resource.Error(e.response.status.description))
+inline fun <reified T : Any> post(request: Any, crossinline result:(Resource<T>)->Unit){
 
-    } catch (e: ClientRequestException) {
-        //handle 4xx error codes
-        return (Resource.Error(e.response.status.description))
+    //println("OKE DONE")
+    val property = request::class
+    val maps = getProperties(request)
+    print(maps["id"])
 
-    } catch (e: ServerResponseException) {
-        //handle 5xx error codes
-        return (Resource.Error(e.response.status.description))
-    } catch (e: Exception) {
-        return (Resource.Error(e.message ?: "Something went wrong"))
+    flow<Resource<T>>  {
+        try {
+            val response = client.submitForm (
+                url = "https://oauth2.googleapis.com/token",
+                formParameters = parameters {
+                    append("grant_type","authorization_code")
+                    append("redirect_uri","http://localhost:9002/auth")
+                }
+            )
+            result(Resource.Success(response.body()))
+        } catch (e: RedirectResponseException) {
+            // handle 3xx codes
+            result (Resource.Error(e.response.status.description))
+
+        } catch (e: ClientRequestException) {
+            //handle 4xx error codes
+            result (Resource.Error(e.response.status.description))
+
+        } catch (e: ServerResponseException) {
+            //handle 5xx error codes
+            result (Resource.Error(e.response.status.description))
+        } catch (e: Exception) {
+            result (Resource.Error(e.message ?: "Something went wrong"))
+        }
     }
 }
 
-suspend fun testApi(){
-
-}
+@Request("/transaction/{id}")
+data class Transaction(val id:Int)

@@ -34,3 +34,7 @@ actual val client: HttpClient = HttpClient(OkHttp) {
         })
     }
 }
+
+actual inline fun <reified T : Any> getProperties(obj: T): Map<String, Any?> {
+    TODO("Not yet implemented")
+}
