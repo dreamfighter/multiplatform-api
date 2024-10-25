@@ -5,6 +5,7 @@ import id.dreamfighter.multiplatform.api.model.Path
 import id.dreamfighter.multiplatform.api.model.Post
 import id.dreamfighter.multiplatform.api.model.Query
 import id.dreamfighter.multiplatform.api.model.Request
+import id.dreamfighter.multiplatform.ksp.ApiRequest
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.HttpTimeout
@@ -89,3 +90,7 @@ actual inline fun <reified T : Any> getRequest(obj: T): Request {
         throw Exception("Method not found")
     }
 }
+
+@ApiRequest
+@Get("http://localhost:3000/transaction/{id}")
+data class TransactionJvm(@Query val id:Int)

@@ -8,5 +8,5 @@ actual val client: HttpClient
 
 
 actual inline fun <reified T : Any> getRequest(obj: T): Request {
-    TODO("Not yet implemented")
+    obj::class.
 }

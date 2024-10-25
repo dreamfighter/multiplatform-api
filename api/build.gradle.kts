@@ -1,4 +1,3 @@
-import com.android.build.gradle.internal.ide.kmp.KotlinAndroidSourceSetMarker.Companion.android
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
@@ -12,7 +11,7 @@ plugins {
     alias(libs.plugins.serializationPlugin)
     id("module.publication")
     id("io.github.ttypic.swiftklib") version "0.6.3"
-    //id("com.google.devtools.ksp") version "2.0.21-1.0.25"
+    alias(libs.plugins.ksp)
 }
 
 kotlin {
@@ -58,6 +57,7 @@ kotlin {
         jvmMain.dependencies {
             implementation(libs.ktor.client.okhttp)
             implementation(libs.kotlinx.coroutines.core)
+            implementation(project(":ksp"))
         }
         androidMain.dependencies {
             implementation(libs.androidx.startup.runtime)
@@ -117,6 +117,30 @@ kotlin {
     }
 
      */
+}
+
+dependencies {
+    add("kspCommonMainMetadata", project(":ksp"))
+    //add("kspAndroid", project(":ksp"))
+    //add("kspAndroidTest", project(":ksp"))
+    //add("kspIosX64", project(":ksp"))
+    //add("kspIosArm64", project(":ksp"))
+    //add("kspIosSimulatorArm64", project(":ksp"))
+}
+
+
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().all {
+    if (name != "kspCommonMainKotlinMetadata") {
+        dependsOn("kspCommonMainKotlinMetadata")
+    }
+}
+
+kotlin.sourceSets.commonMain {
+    kotlin.srcDir("build/generated/ksp/metadata/commonMain/kotlin")
+}
+
+ksp {
+    arg("measureDuration", "true")
 }
 
 android {

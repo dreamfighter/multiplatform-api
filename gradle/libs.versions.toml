@@ -1,6 +1,7 @@
 [versions]
 agp = "8.5.2"
-kotlin = "2.0.20"
+autoService = "1.0-rc7"
+kotlin = "2.0.21"
 kotlinxCoroutinesAndroid = "1.9.0"
 kotlinxCoroutinesCore = "1.9.0"
 kotlinxSerializationJson = "1.7.3"
@@ -14,9 +15,12 @@ google-credentials = "1.3.0"
 compose-plugin = "1.6.11"
 ktor-network = "3.0.0"
 slf4j-api = "2.0.16"
+ksp = "2.0.21-1.0.26"
+kotlinpoet = "1.12.0"
 
 [libraries]
 androidx-startup-runtime = { module = "androidx.startup:startup-runtime", version.ref = "startupRuntime" }
+auto-service = { module = "com.google.auto.service:auto-service", version.ref = "autoService" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinxCoroutinesAndroid" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutinesCore" }
@@ -40,6 +44,9 @@ androidx-credentials-play-services-auth = { group = "androidx.credentials", name
 slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j-api" }
 #noinspection CredentialDependency
 androidx-credentials = { group = "androidx.credentials", name = "credentials", version.ref = "google-credentials" }
+ksp-processor-api = { group = "com.google.devtools.ksp", name = "symbol-processing-api", version.ref = "ksp" }
+kotlinpoet = { group = "com.squareup", name = "kotlinpoet-ksp", version.ref = "kotlinpoet"}
+
 
 [plugins]
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
@@ -48,3 +55,4 @@ jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "compose-plugin
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 serializationPlugin = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 kotlinNativeCocoaPods = { id = "org.jetbrains.kotlin.native.cocoapods", version.ref = "kotlin" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }

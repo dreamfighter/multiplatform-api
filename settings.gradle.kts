@@ -19,3 +19,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "multiplatform-api"
 include(":api")
+include(":ksp")
