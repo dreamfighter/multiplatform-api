@@ -1,11 +1,10 @@
 package id.dreamfighter.multiplatform.api
 
-import id.dreamfighter.multiplatform.api.model.Get
-import id.dreamfighter.multiplatform.api.model.Path
-import id.dreamfighter.multiplatform.api.model.Post
-import id.dreamfighter.multiplatform.api.model.Query
+import id.dreamfighter.multiplatform.annotation.Get
+import id.dreamfighter.multiplatform.annotation.Path
+import id.dreamfighter.multiplatform.annotation.Post
+import id.dreamfighter.multiplatform.annotation.Query
 import id.dreamfighter.multiplatform.api.model.Request
-import id.dreamfighter.multiplatform.ksp.ApiRequest
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.HttpTimeout
@@ -91,6 +90,5 @@ actual inline fun <reified T : Any> getRequest(obj: T): Request {
     }
 }
 
-@ApiRequest
 @Get("http://localhost:3000/transaction/{id}")
 data class TransactionJvm(@Query val id:Int)

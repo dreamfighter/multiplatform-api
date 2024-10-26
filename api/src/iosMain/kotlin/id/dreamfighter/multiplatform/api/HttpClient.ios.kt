@@ -3,10 +3,10 @@ package id.dreamfighter.multiplatform.api
 import id.dreamfighter.multiplatform.api.model.Request
 import io.ktor.client.HttpClient
 
-actual val client: HttpClient
-    get() = TODO("Not yet implemented")
+actual val client: HttpClient = HttpClient()
 
 
 actual inline fun <reified T : Any> getRequest(obj: T): Request {
-    obj::class.
+    println(obj.toJson())
+   return Request("","", path = emptyMap(), query = emptyMap())
 }

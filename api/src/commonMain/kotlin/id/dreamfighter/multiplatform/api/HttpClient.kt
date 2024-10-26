@@ -1,8 +1,7 @@
 package id.dreamfighter.multiplatform.api
 
-import id.dreamfighter.multiplatform.api.model.Get
-import id.dreamfighter.multiplatform.api.model.Path
-import id.dreamfighter.multiplatform.api.model.Query
+import id.dreamfighter.multiplatform.annotation.Get
+import id.dreamfighter.multiplatform.annotation.Query
 import id.dreamfighter.multiplatform.api.model.Request
 import id.dreamfighter.multiplatform.api.model.Resource
 import io.ktor.client.HttpClient
@@ -14,7 +13,6 @@ import io.ktor.client.request.forms.submitForm
 import io.ktor.client.request.get
 import io.ktor.http.encodeURLPathPart
 import io.ktor.http.parameters
-import io.ktor.http.plus
 
 object HttpMethod {
     val GET = "GET"
@@ -27,9 +25,14 @@ fun HttpClient.setBaseUrl(url: String) {
 
 expect val client: HttpClient
 
-expect inline fun <reified T : Any> getRequest(obj:T):Request
+fun Any.toJson(): String {
+    return """{"name":"${this::class.simpleName}"}"""
+}
+
+expect inline fun <reified T:Any> getRequest(obj: T):Request
 
 suspend inline fun <reified T : Any> req(request: Any): Resource<T>{
+    println(request.toJson())
     val req = getRequest(request)
 
     if(req.path.isNotEmpty()){

@@ -1,3 +1,4 @@
+import id.dreamfighter.multiplatform.api.ApiRequest
 import id.dreamfighter.multiplatform.api.Transaction
 import id.dreamfighter.multiplatform.api.client
 import id.dreamfighter.multiplatform.api.req
@@ -15,7 +16,7 @@ class JvmHttpClientTest {
     @Test
     fun `test 3rd element`(): Unit = runBlocking {
         client.setBaseUrl("http://127.0.0.1:3000")
-        val result = req<Transaction>(request = Transaction(id = 10))
+        val result = req<Transaction>(request = ApiRequest.Transaction())
         println(result)
     }
     @After

@@ -17,6 +17,7 @@ ktor-network = "3.0.0"
 slf4j-api = "2.0.16"
 ksp = "2.0.21-1.0.26"
 kotlinpoet = "1.12.0"
+jetbrainsKotlinJvm = "1.9.0"
 
 [libraries]
 androidx-startup-runtime = { module = "androidx.startup:startup-runtime", version.ref = "startupRuntime" }
@@ -56,3 +57,4 @@ compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "
 serializationPlugin = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 kotlinNativeCocoaPods = { id = "org.jetbrains.kotlin.native.cocoapods", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+jetbrains-kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "jetbrainsKotlinJvm" }

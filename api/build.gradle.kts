@@ -79,6 +79,7 @@ kotlin {
                 implementation(libs.kotlinx.serialization.json)
                 implementation(libs.slf4j.simple)
                 implementation(kotlin("reflect"))
+                implementation(project(":annotation"))
 
                 implementation(libs.ktor.server.websockets)
                 implementation(libs.ktor.server.cors)
@@ -100,8 +101,15 @@ kotlin {
                 implementation(libs.system.lambda)
             }
         }
+
+        val jvmTest by getting {
+            dependencies {
+                implementation(libs.kotlin.test)
+                implementation(project(":ksp"))
+            }
+        }
     }
-    /*
+
     listOf(
         iosX64(),
         iosArm64(),
@@ -115,8 +123,6 @@ kotlin {
             }
         }
     }
-
-     */
 }
 
 dependencies {
