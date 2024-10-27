@@ -1,3 +1,4 @@
+import id.dreamfighter.multiplatform.api.ApiRequest
 import id.dreamfighter.multiplatform.api.Transaction
 import id.dreamfighter.multiplatform.api.client
 import id.dreamfighter.multiplatform.api.req
@@ -12,7 +13,6 @@ import kotlin.test.Test
 
 class IosHttpClientTest {
     private val scope = CoroutineScope(Dispatchers.Default)
-    @OptIn(ExperimentalAssociatedObjects::class)
     @kotlinx.cinterop.ExperimentalForeignApi
     @Test
     fun `test 3rd element`() {
@@ -21,7 +21,7 @@ class IosHttpClientTest {
         //assertEquals(7, fibi.take(3).last())
         client.setBaseUrl("http://127.0.0.1:3000")
         scope.launch {
-            val result = req<Transaction>(request = Transaction(id = 10))
+            val result = req<Transaction>(request = ApiRequest.Transaction(10))
             println(result)
         }
 

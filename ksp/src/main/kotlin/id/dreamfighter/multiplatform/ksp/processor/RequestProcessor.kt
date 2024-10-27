@@ -12,14 +12,14 @@ import id.dreamfighter.multiplatform.annotation.Post
 import id.dreamfighter.multiplatform.annotation.Query
 import java.io.OutputStreamWriter
 
-class RequestProcessor(val codeGenerator: CodeGenerator, val logger: KSPLogger) : SymbolProcessor {
-    var invoked = false
+class RequestProcessor(private val codeGenerator: CodeGenerator, private val logger: KSPLogger) : SymbolProcessor {
+    private var invoked = false
 
     override fun process(resolver: Resolver): List<KSAnnotated> {
         val allFiles = resolver.getSymbolsWithAnnotation(Get::class.qualifiedName.orEmpty()).map {
             it.containingFile!!
         }.toList()
-        logger.warn("ksp process $allFiles")
+
         if (invoked) {
             return emptyList()
         }
@@ -31,7 +31,7 @@ class RequestProcessor(val codeGenerator: CodeGenerator, val logger: KSPLogger) 
                     val packageName = allFiles.first().packageName.asString()
                     writer.write("package $packageName\n\n")
                     writer.write("import id.dreamfighter.multiplatform.api.model.Request\n")
-                    writer.write("object ApiRequest{\n")
+                    writer.write("object Req{\n")
 
                     val visitor = ClassVisitor(logger)
                     allFiles.forEach {
@@ -46,7 +46,7 @@ class RequestProcessor(val codeGenerator: CodeGenerator, val logger: KSPLogger) 
     }
 }
 
-class ClassVisitor(val logger: KSPLogger) : KSTopDownVisitor<OutputStreamWriter, Unit>() {
+class ClassVisitor(private val logger: KSPLogger) : KSTopDownVisitor<OutputStreamWriter, Unit>() {
     override fun defaultHandler(node: KSNode, data: OutputStreamWriter) {
     }
 
@@ -56,9 +56,7 @@ class ClassVisitor(val logger: KSPLogger) : KSTopDownVisitor<OutputStreamWriter,
     ) {
         super.visitClassDeclaration(classDeclaration, data)
         val symbolName = classDeclaration.simpleName.asString()
-        logger.warn("symbol name $symbolName")
         val methods = classDeclaration.annotations.filter {
-
             it.shortName.asString() == Get::class.simpleName || it.shortName.asString() == Post::class.simpleName
         }
         if(methods.iterator().hasNext()){
@@ -85,22 +83,24 @@ class ClassVisitor(val logger: KSPLogger) : KSTopDownVisitor<OutputStreamWriter,
                 prop.annotations.forEach {
                     when(it.shortName.asString()){
                         Path::class.simpleName -> {
-                            logger.warn("path ${it.arguments[0]}")
-                            val name = if(it.arguments[0].value.toString() == ""){
-                                prop.simpleName.toString()
+                            logger.info("path ${it.arguments[0].value}")
+                            val name = if(it.arguments[0].value == null){
+                                prop.simpleName.asString()
                             }else{
                                 "${it.arguments[0].value}"
                             }
-                            params[name] = prop.simpleName.asString()
+                            logger.info("name $name")
+                            params[name] = prop.type
                             path[name] = prop.simpleName.asString()
                         }
                         Query::class.simpleName -> {
-                            val name = if(it.arguments[0].value.toString() == ""){
-                                prop.simpleName.toString()
+                            logger.info("query ${it.arguments[0]}")
+                            val name = if(it.arguments[0].value == null){
+                                prop.simpleName.asString()
                             }else{
                                 "${it.arguments[0].value}"
                             }
-                            query[name] = prop.simpleName.asString()
+                            query[name] = prop.type
                             params[name] = prop.simpleName.asString()
                         }
                     }
@@ -108,13 +108,15 @@ class ClassVisitor(val logger: KSPLogger) : KSTopDownVisitor<OutputStreamWriter,
             }
 
             val paramsString = params.map {
-                "${it.key}:{${it.value}}"
+                "${it.key}:${it.value}"
             }.joinToString(",")
 
             data.write("""
-    fun $symbolName($paramsString){
+    fun $symbolName($paramsString):Request {
         return Request(url = "$url", method = "$method", path = mapOf(${path.map {
-                "${it.key}" to it.value
+                "\"${it.value}\" to ${it.value}"
+            }.joinToString(",")}),query = mapOf(${query.map {
+                "\"${it.value}\" to ${it.value}"
             }.joinToString(",")}))
     }
 

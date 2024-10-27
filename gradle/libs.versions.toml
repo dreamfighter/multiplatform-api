@@ -35,6 +35,7 @@ androidx-lifecycle-runtime-compose = { group = "org.jetbrains.androidx.lifecycle
 ktor-server-cors = { module = "io.ktor:ktor-server-cors", version.ref = "ktor-network" }
 #ktor-server-netty = { module = "io.ktor:ktor-server-netty", version.ref = "ktor-network" }
 ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor-network" }
+ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor-network" }
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor-network" }
 ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor-network" }
 ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor-network" }

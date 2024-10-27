@@ -5,12 +5,11 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidLibrary)
-    alias(libs.plugins.kotlinNativeCocoaPods)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.jetbrainsCompose)
     alias(libs.plugins.serializationPlugin)
     id("module.publication")
-    id("io.github.ttypic.swiftklib") version "0.6.3"
+    //id("io.github.ttypic.swiftklib") version "0.6.3"
     alias(libs.plugins.ksp)
 }
 
@@ -36,6 +35,7 @@ kotlin {
         }
     }
 
+    /*
     cocoapods {
         ios.deploymentTarget = "11.0"
         framework {
@@ -45,6 +45,8 @@ kotlin {
         //pod("GoogleSignIn")
     }
 
+     */
+
     iosX64()
     iosArm64()
     iosSimulatorArm64()
@@ -52,12 +54,12 @@ kotlin {
 
     sourceSets {
         iosMain.dependencies {
+            implementation(libs.ktor.client.darwin)
             //implementation(libs.github.mirzemehdi.google)
         }
         jvmMain.dependencies {
             implementation(libs.ktor.client.okhttp)
             implementation(libs.kotlinx.coroutines.core)
-            implementation(project(":ksp"))
         }
         androidMain.dependencies {
             implementation(libs.androidx.startup.runtime)
@@ -70,6 +72,7 @@ kotlin {
             //implementation("com.google.devtools.ksp:symbol-processing-api:2.0.21-1.0.25")
         }
         val commonMain by getting {
+            //kotlin.srcDir("build/generated/ksp/metadata/commonMain/kotlin")
             dependencies {
                 //put your multiplatform dependencies here
                 implementation(compose.runtime)
@@ -79,7 +82,7 @@ kotlin {
                 implementation(libs.kotlinx.serialization.json)
                 implementation(libs.slf4j.simple)
                 implementation(kotlin("reflect"))
-                implementation(project(":annotation"))
+                implementation(project(":request-annotation"))
 
                 implementation(libs.ktor.server.websockets)
                 implementation(libs.ktor.server.cors)
@@ -109,21 +112,8 @@ kotlin {
             }
         }
     }
-
-    listOf(
-        iosX64(),
-        iosArm64(),
-        iosSimulatorArm64(),
-    ).forEach {
-        it.compilations {
-            val main by getting {
-                cinterops {
-                    create("Utils")
-                }
-            }
-        }
-    }
 }
+
 
 dependencies {
     add("kspCommonMainMetadata", project(":ksp"))
@@ -133,7 +123,7 @@ dependencies {
     //add("kspIosArm64", project(":ksp"))
     //add("kspIosSimulatorArm64", project(":ksp"))
 }
-
+//
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().all {
     if (name != "kspCommonMainKotlinMetadata") {
@@ -141,25 +131,20 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().all {
     }
 }
 
-kotlin.sourceSets.commonMain {
-    kotlin.srcDir("build/generated/ksp/metadata/commonMain/kotlin")
-}
+//kotlin.sourceSets.commonMain {
+//    kotlin.srcDir("build/generated/ksp/metadata/commonMain/kotlin")
+//}
 
 ksp {
     arg("measureDuration", "true")
 }
+
+/* */
 
 android {
     namespace = "id.dreamfighter.multiplatform.api"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
     defaultConfig {
         minSdk = libs.versions.android.minSdk.get().toInt()
-    }
-}
-
-swiftklib {
-    create("Utils") {
-        path = file("native/Utils")
-        packageName("id.dreamfighter.multiplatform.swift")
     }
 }

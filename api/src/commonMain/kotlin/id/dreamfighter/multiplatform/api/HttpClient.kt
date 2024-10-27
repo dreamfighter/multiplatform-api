@@ -1,7 +1,5 @@
 package id.dreamfighter.multiplatform.api
 
-import id.dreamfighter.multiplatform.annotation.Get
-import id.dreamfighter.multiplatform.annotation.Query
 import id.dreamfighter.multiplatform.api.model.Request
 import id.dreamfighter.multiplatform.api.model.Resource
 import io.ktor.client.HttpClient
@@ -9,6 +7,7 @@ import io.ktor.client.call.body
 import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.plugins.RedirectResponseException
 import io.ktor.client.plugins.ServerResponseException
+import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.forms.submitForm
 import io.ktor.client.request.get
 import io.ktor.http.encodeURLPathPart
@@ -31,27 +30,27 @@ fun Any.toJson(): String {
 
 expect inline fun <reified T:Any> getRequest(obj: T):Request
 
-suspend inline fun <reified T : Any> req(request: Any): Resource<T>{
+suspend inline fun <reified T> req(request: Request, interceptor: HttpRequestBuilder.() -> Unit = {}): Resource<T>{
     println(request.toJson())
-    val req = getRequest(request)
 
-    if(req.path.isNotEmpty()){
-        req.path.forEach {
-            req.url = req.url.replace("{${it.key}}",it.value.toString().encodeURLPathPart())
+    if(request.path.isNotEmpty()){
+        request.path.forEach {
+            request.url = request.url.replace("{${it.key}}",it.value.toString().encodeURLPathPart())
         }
     }
     try {
         val params = parameters {
-            req.query.forEach {
+            request.query.forEach {
                 append(it.key, it.value.toString())
             }
         }
-        val response = when(req.method) {
+        val response = when(request.method) {
             HttpMethod.POST -> client.submitForm(
-                url = req.url,
+                url = request.url,
                 formParameters = params
             )
-            else -> client.get(req.url){
+            else -> client.get(request.url){
+                interceptor(this)
                 url {
                     parameters.appendAll(params)
                 }
@@ -73,6 +72,3 @@ suspend inline fun <reified T : Any> req(request: Any): Resource<T>{
         return (Resource.Error(e.message ?: "Something went wrong"))
     }
 }
-
-@Get("http://localhost:3000/transaction/{id}")
-data class Transaction(@Query val id:Int)

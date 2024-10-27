@@ -1,5 +1,6 @@
 plugins {
     kotlin("multiplatform")
+    id("module.publication")
 }
 
 kotlin {
@@ -12,7 +13,7 @@ kotlin {
             dependencies {
                 implementation(libs.ksp.processor.api)
                 implementation(libs.kotlinpoet)
-                implementation(project(":annotation"))
+                implementation(project(":request-annotation"))
             }
             kotlin.srcDir("src/main/kotlin")
             resources.srcDir("src/main/resources")

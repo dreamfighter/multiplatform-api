@@ -53,7 +53,7 @@ publishing {
                 }
             }
             scm {
-                url.set("https://github.com/dreamfighter/multiplatform-auth")
+                url.set("https://github.com/dreamfighter/multiplatform-api")
             }
         }
     }
