@@ -6,6 +6,7 @@ import com.google.devtools.ksp.processing.*
 import com.google.devtools.ksp.symbol.*
 import com.google.devtools.ksp.visitor.KSTopDownVisitor
 import com.squareup.kotlinpoet.ksp.toTypeName
+import id.dreamfighter.multiplatform.annotation.Body
 import id.dreamfighter.multiplatform.annotation.Get
 import id.dreamfighter.multiplatform.annotation.Path
 import id.dreamfighter.multiplatform.annotation.Post
@@ -13,28 +14,30 @@ import id.dreamfighter.multiplatform.annotation.Query
 import java.io.OutputStreamWriter
 
 class RequestProcessor(private val codeGenerator: CodeGenerator, private val logger: KSPLogger) : SymbolProcessor {
-    private var invoked = false
+    var invoked = false
 
     override fun process(resolver: Resolver): List<KSAnnotated> {
-        val allFiles = resolver.getSymbolsWithAnnotation(Get::class.qualifiedName.orEmpty()).map {
-            it.containingFile!!
-        }.toList()
+        val gets = resolver.getSymbolsWithAnnotation(Get::class.qualifiedName.orEmpty())
+        val posts = resolver.getSymbolsWithAnnotation(Post::class.qualifiedName.orEmpty())
+
+        val allFiles = gets.plus(posts)
 
         if (invoked) {
             return emptyList()
         }
         invoked = true
 
+        val visitor = ClassVisitor(logger)
+
         codeGenerator.createNewFile(Dependencies(true), "", "ApiRequest", "kt").use { output ->
             OutputStreamWriter(output).use { writer ->
-                if(allFiles.isNotEmpty()) {
-                    val packageName = allFiles.first().packageName.asString()
+                if(allFiles.iterator().hasNext()) {
+                    val packageName = allFiles.iterator().asSequence().first().containingFile?.packageName?.asString()
                     writer.write("package $packageName\n\n")
                     writer.write("import id.dreamfighter.multiplatform.api.model.Request\n")
                     writer.write("object Req{\n")
-
-                    val visitor = ClassVisitor(logger)
                     allFiles.forEach {
+                        logger.warn("processing $it")
                         it.accept(visitor, writer)
                     }
 
@@ -65,6 +68,7 @@ class ClassVisitor(private val logger: KSPLogger) : KSTopDownVisitor<OutputStrea
             val path: MutableMap<String, Any?> = mutableMapOf()
             val query:MutableMap<String,Any?> = mutableMapOf()
             val params:MutableMap<String,Any?> = mutableMapOf()
+            var body = "null"
             val annotation = methods.first()
             logger.warn("${methods.first().arguments.first().value}")
 
@@ -100,8 +104,14 @@ class ClassVisitor(private val logger: KSPLogger) : KSTopDownVisitor<OutputStrea
                             }else{
                                 "${it.arguments[0].value}"
                             }
-                            query[name] = prop.type
-                            params[name] = prop.simpleName.asString()
+                            params[name] = prop.type
+                            query[name] = prop.simpleName.asString()
+                        }
+                        Body::class.simpleName -> {
+                            logger.warn("body ${it.arguments}")
+                            val name = prop.simpleName.asString()
+                            params[name] = prop.type
+                            body = prop.simpleName.asString()
                         }
                     }
                 }
@@ -117,7 +127,7 @@ class ClassVisitor(private val logger: KSPLogger) : KSTopDownVisitor<OutputStrea
                 "\"${it.value}\" to ${it.value}"
             }.joinToString(",")}),query = mapOf(${query.map {
                 "\"${it.value}\" to ${it.value}"
-            }.joinToString(",")}))
+            }.joinToString(",")}), body = $body)
     }
 
 """.trimMargin())

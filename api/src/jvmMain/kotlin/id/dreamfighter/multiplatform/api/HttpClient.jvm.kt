@@ -90,5 +90,3 @@ actual inline fun <reified T : Any> getRequest(obj: T): Request {
     }
 }
 
-@Get("http://localhost:3000/transaction/{id}")
-data class TransactionJvm(@Query val id:Int)
