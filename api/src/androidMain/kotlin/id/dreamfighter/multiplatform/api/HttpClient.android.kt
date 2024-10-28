@@ -31,7 +31,7 @@ actual val client: HttpClient = HttpClient(OkHttp) {
     }
     defaultRequest {
         header("Content-Type", "application/json")
-        url("https://pokeapi.co/api/v2/")
+        url(BASE_URL)
     }
     install(ContentNegotiation){
         json(Json{

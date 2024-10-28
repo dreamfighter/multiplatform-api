@@ -69,6 +69,7 @@ class ClassVisitor(private val logger: KSPLogger) : KSTopDownVisitor<OutputStrea
             val query:MutableMap<String,Any?> = mutableMapOf()
             val params:MutableMap<String,Any?> = mutableMapOf()
             var body = "null"
+            val headers:MutableMap<String,Any?> = mutableMapOf()
             val annotation = methods.first()
             logger.warn("${methods.first().arguments.first().value}")
 
@@ -79,7 +80,12 @@ class ClassVisitor(private val logger: KSPLogger) : KSTopDownVisitor<OutputStrea
                 }
                 Post::class.simpleName -> {
                     method = "POST"
-                    url = annotation.arguments.first().value as String
+                    val arguments = annotation.arguments
+                    headers.plusAssign(
+                        "Content-Type" to (arguments.first { it.name?.asString() == "contentType" }.value?: "application/json")
+
+                    )
+                    url = arguments.first { it.name?.asString() == "url" }.value as String
                 }
             }
 
@@ -108,9 +114,8 @@ class ClassVisitor(private val logger: KSPLogger) : KSTopDownVisitor<OutputStrea
                             query[name] = prop.simpleName.asString()
                         }
                         Body::class.simpleName -> {
-                            logger.warn("body ${it.arguments}")
                             val name = prop.simpleName.asString()
-                            params[name] = prop.type
+                            params[name] = prop.type.resolve()
                             body = prop.simpleName.asString()
                         }
                     }
@@ -127,7 +132,9 @@ class ClassVisitor(private val logger: KSPLogger) : KSTopDownVisitor<OutputStrea
                 "\"${it.value}\" to ${it.value}"
             }.joinToString(",")}),query = mapOf(${query.map {
                 "\"${it.value}\" to ${it.value}"
-            }.joinToString(",")}), body = $body)
+            }.joinToString(",")}), body = $body, headers = mapOf(${headers.map {
+                "\"${it.key}\" to \"${it.value}\""
+            }.joinToString(",")}))
     }
 
 """.trimMargin())

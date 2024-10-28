@@ -27,10 +27,6 @@ object HttpMethod {
     val POST = "POST"
 }
 var BASE_URL = "https://localhost"
-fun HttpClient.setBaseUrl(url: String) {
-    BASE_URL = url
-}
-
 expect val client: HttpClient
 
 fun Any.toJson(): String {
@@ -53,7 +49,7 @@ suspend inline fun <reified T> req(request: Request, interceptor: HttpRequestBui
                 append(it.key, it.value.toString())
             }
         }
-        var contentType = request.headers["Content-Type"]
+        val contentType = request.headers["Content-Type"]
         val response = when(request.method) {
             HttpMethod.POST -> {
                 when(contentType){
@@ -106,10 +102,9 @@ suspend inline fun <reified T> req(request: Request, interceptor: HttpRequestBui
     }
 }
 /*
-@Post("/auth/google")
-data class AuthGoogle(@Body val idToken: String, @Path val id:Int, @Query val name:String)
+@Post(url = "/auth/google")
+data class AuthGoogle(@Body val map: Map<String,String>, @Path val id:Int, @Query val name:String)
 
 @Get("/auth/google")
 data class Profile(@Path val id:Int, @Query val name:String)
-
- */
+*/
