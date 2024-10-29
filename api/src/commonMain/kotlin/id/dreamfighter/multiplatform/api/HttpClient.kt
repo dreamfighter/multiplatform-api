@@ -18,9 +18,12 @@ import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.http.encodeURLPathPart
 import io.ktor.http.parameters
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 
 object HttpMethod {
     val GET = "GET"
@@ -34,6 +37,13 @@ fun Any.toJson(): String {
 }
 
 expect inline fun <reified T:Any> getRequest(obj: T):Request
+
+suspend inline fun <reified T> flowReq(request: Request, crossinline interceptor: HttpRequestBuilder.() -> Unit = {}): Flow<Resource<T>> {
+    return flow {
+        emit(Resource.Loading(true))
+        emit(req(request, interceptor))
+    }
+}
 
 suspend inline fun <reified T> req(request: Request, interceptor: HttpRequestBuilder.() -> Unit = {}): Resource<T>{
     println(request.toJson())
@@ -72,11 +82,7 @@ suspend inline fun <reified T> req(request: Request, interceptor: HttpRequestBui
                             formParameters = formParams
                         )
                     }
-
                 }
-
-
-
             }
             else -> client.get(request.url){
                 interceptor(this)
@@ -85,7 +91,11 @@ suspend inline fun <reified T> req(request: Request, interceptor: HttpRequestBui
                 }
             }
         }
-        return Resource.Success(response.body())
+
+        return when(response.status){
+            HttpStatusCode.OK -> Resource.Success(response.body())
+            else -> Resource.Error(response.body())
+        }
     } catch (e: RedirectResponseException) {
         // handle 3xx codes
         return(Resource.Error(e.response.status.description))
