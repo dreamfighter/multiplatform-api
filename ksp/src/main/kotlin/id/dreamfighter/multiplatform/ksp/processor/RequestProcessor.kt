@@ -147,7 +147,7 @@ class ClassVisitor(private val logger: KSPLogger) : KSTopDownVisitor<OutputStrea
                 "\"${it.value}\" to ${it.value}"
             }.joinToString(",")}),query = mapOf(${query.map {
                 "\"${it.value}\" to ${it.value}"
-            }.joinToString(",")}), body = $body, headers = mapOf(${headers.map {
+            }.joinToString(",")}), body = $body, requestHeaders = mapOf(${headers.map {
                 "\"${it.key}\" to ${it.value}"
             }.joinToString(",")}))
     }
