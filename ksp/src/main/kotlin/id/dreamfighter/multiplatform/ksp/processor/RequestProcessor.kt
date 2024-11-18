@@ -8,6 +8,7 @@ import com.google.devtools.ksp.visitor.KSTopDownVisitor
 import com.squareup.kotlinpoet.ksp.toTypeName
 import id.dreamfighter.multiplatform.annotation.Body
 import id.dreamfighter.multiplatform.annotation.Get
+import id.dreamfighter.multiplatform.annotation.Header
 import id.dreamfighter.multiplatform.annotation.Path
 import id.dreamfighter.multiplatform.annotation.Post
 import id.dreamfighter.multiplatform.annotation.Query
@@ -67,6 +68,7 @@ class ClassVisitor(private val logger: KSPLogger) : KSTopDownVisitor<OutputStrea
             var url = ""
             val path: MutableMap<String, Any?> = mutableMapOf()
             val query:MutableMap<String,Any?> = mutableMapOf()
+            val headerParam:MutableMap<String,Any?> = mutableMapOf()
             val params:MutableMap<String,Any?> = mutableMapOf()
             var body = "null"
             val headers:MutableMap<String,Any?> = mutableMapOf()
@@ -82,8 +84,7 @@ class ClassVisitor(private val logger: KSPLogger) : KSTopDownVisitor<OutputStrea
                     method = "POST"
                     val arguments = annotation.arguments
                     headers.plusAssign(
-                        "Content-Type" to (arguments.first { it.name?.asString() == "contentType" }.value?: "application/json")
-
+                        "Content-Type" to "\"${(arguments.first { it.name?.asString() == "contentType" }.value ?: "application/json")}\""
                     )
                     url = arguments.first { it.name?.asString() == "url" }.value as String
                 }
@@ -118,6 +119,18 @@ class ClassVisitor(private val logger: KSPLogger) : KSTopDownVisitor<OutputStrea
                             params[name] = prop.type.resolve()
                             body = prop.simpleName.asString()
                         }
+                        Header::class.simpleName -> {
+                            logger.info("header ${it.arguments[0]}")
+                            val argName = if(it.arguments[0].value == null){
+                                prop.simpleName.asString()
+                            }else{
+                                "${it.arguments[0].value}"
+                            }
+
+                            val name = prop.simpleName.asString()
+                            params[name] = prop.type
+                            headerParam[argName] = prop.simpleName.asString()
+                        }
                     }
                 }
             }
@@ -126,6 +139,8 @@ class ClassVisitor(private val logger: KSPLogger) : KSTopDownVisitor<OutputStrea
                 "${it.key}:${it.value}"
             }.joinToString(",")
 
+            headers.plusAssign(headerParam)
+
             data.write("""
     fun $symbolName($paramsString):Request {
         return Request(url = "$url", method = "$method", path = mapOf(${path.map {
@@ -133,7 +148,7 @@ class ClassVisitor(private val logger: KSPLogger) : KSTopDownVisitor<OutputStrea
             }.joinToString(",")}),query = mapOf(${query.map {
                 "\"${it.value}\" to ${it.value}"
             }.joinToString(",")}), body = $body, headers = mapOf(${headers.map {
-                "\"${it.key}\" to \"${it.value}\""
+                "\"${it.key}\" to ${it.value}"
             }.joinToString(",")}))
     }
 
