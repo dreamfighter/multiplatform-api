@@ -72,8 +72,6 @@ suspend inline fun <reified T> req(request: Request, interceptor: HttpRequestBui
 
                         if(request.body!=null) {
                             setBody(request.body)
-                        }else{
-                            setBody("{}")
                         }
                     }
                     else -> {
