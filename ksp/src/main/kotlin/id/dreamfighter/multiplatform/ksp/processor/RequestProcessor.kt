@@ -95,24 +95,26 @@ class ClassVisitor(private val logger: KSPLogger) : KSTopDownVisitor<OutputStrea
                     when(it.shortName.asString()){
                         Path::class.simpleName -> {
                             logger.info("path ${it.arguments[0].value}")
-                            val name = if(it.arguments[0].value == null){
+                            val argName = if(it.arguments[0].value == null){
                                 prop.simpleName.asString()
                             }else{
                                 "${it.arguments[0].value}"
                             }
+                            val name = prop.simpleName.asString()
                             logger.info("name $name")
                             params[name] = prop.type
-                            path[name] = prop.simpleName.asString()
+                            path[argName] = prop.simpleName.asString()
                         }
                         Query::class.simpleName -> {
                             logger.info("query ${it.arguments[0]}")
-                            val name = if(it.arguments[0].value == null){
+                            val argName = if(it.arguments[0].value == null){
                                 prop.simpleName.asString()
                             }else{
                                 "${it.arguments[0].value}"
                             }
+                            val name = prop.simpleName.asString()
                             params[name] = prop.type
-                            query[name] = prop.simpleName.asString()
+                            query[argName] = prop.simpleName.asString()
                         }
                         Body::class.simpleName -> {
                             val name = prop.simpleName.asString()
