@@ -64,11 +64,17 @@ suspend inline fun <reified T> req(request: Request, interceptor: HttpRequestBui
         val contentType = request.requestHeaders["Content-Type"]
         val response = when(request.method) {
             HttpMethod.POST -> {
+                println("request.body ${request.body}")
                 when(contentType){
                     "application/json" -> client.post(request.url) {
                         interceptor(this)
                         contentType(ContentType.Application.Json)
-                        setBody(request.body)
+
+                        if(request.body!=null) {
+                            setBody(request.body)
+                        }else{
+                            setBody("{}")
+                        }
                     }
                     else -> {
                         val formParams = parameters {
