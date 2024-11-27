@@ -3,6 +3,7 @@ package id.dreamfighter.multiplatform.api
 import id.dreamfighter.multiplatform.annotation.Body
 import id.dreamfighter.multiplatform.annotation.Get
 import id.dreamfighter.multiplatform.annotation.Header
+import id.dreamfighter.multiplatform.annotation.Multipart
 import id.dreamfighter.multiplatform.annotation.Path
 import id.dreamfighter.multiplatform.annotation.Post
 import id.dreamfighter.multiplatform.annotation.Query
@@ -14,12 +15,16 @@ import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.plugins.RedirectResponseException
 import io.ktor.client.plugins.ServerResponseException
 import io.ktor.client.request.HttpRequestBuilder
+import io.ktor.client.request.forms.formData
 import io.ktor.client.request.forms.submitForm
+import io.ktor.client.request.forms.submitFormWithBinaryData
 import io.ktor.client.request.get
 import io.ktor.client.request.headers
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
+import io.ktor.http.Headers
+import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.http.encodeURLPathPart
@@ -74,6 +79,9 @@ suspend inline fun <reified T> req(request: Request, interceptor: HttpRequestBui
                             setBody(request.body)
                         }
                     }
+                    "mutlipart/form-data" -> client.submitFormWithBinaryData(url = request.url, formData = request.formData){
+                        interceptor(this)
+                    }
                     else -> {
                         val formParams = parameters {
                             if(request.body != null && request.body is Map<*, *>){
@@ -123,11 +131,11 @@ suspend inline fun <reified T> req(request: Request, interceptor: HttpRequestBui
     }
 }
 /*
+@Multipart
 @Post(url = "/auth/google")
 data class AuthGoogle(@Body val map: Map<String,String>,
                       @Path val id:Int,
-                      @Query val name:String,
-    @Header(name = "Authorization") val accessToken:String)
+                      @Query val name:String)
 
 @Get("/auth/google")
 data class Profile(@Path val id:Int, @Query val name:String)

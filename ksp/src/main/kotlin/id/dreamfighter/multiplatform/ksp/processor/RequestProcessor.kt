@@ -5,10 +5,10 @@ import com.google.devtools.ksp.getDeclaredProperties
 import com.google.devtools.ksp.processing.*
 import com.google.devtools.ksp.symbol.*
 import com.google.devtools.ksp.visitor.KSTopDownVisitor
-import com.squareup.kotlinpoet.ksp.toTypeName
 import id.dreamfighter.multiplatform.annotation.Body
 import id.dreamfighter.multiplatform.annotation.Get
 import id.dreamfighter.multiplatform.annotation.Header
+import id.dreamfighter.multiplatform.annotation.Multipart
 import id.dreamfighter.multiplatform.annotation.Path
 import id.dreamfighter.multiplatform.annotation.Post
 import id.dreamfighter.multiplatform.annotation.Query
@@ -60,10 +60,10 @@ class ClassVisitor(private val logger: KSPLogger) : KSTopDownVisitor<OutputStrea
     ) {
         super.visitClassDeclaration(classDeclaration, data)
         val symbolName = classDeclaration.simpleName.asString()
-        val methods = classDeclaration.annotations.filter {
-            it.shortName.asString() == Get::class.simpleName || it.shortName.asString() == Post::class.simpleName
+        val dataModels = classDeclaration.annotations.filter {
+            it.shortName.asString() == Get::class.simpleName || it.shortName.asString() == Post::class.simpleName || it.shortName.asString() == Multipart::class.simpleName
         }
-        if(methods.iterator().hasNext()){
+        if(dataModels.iterator().hasNext()){
             var method = ""
             var url = ""
             val path: MutableMap<String, Any?> = mutableMapOf()
@@ -72,8 +72,15 @@ class ClassVisitor(private val logger: KSPLogger) : KSTopDownVisitor<OutputStrea
             val params:MutableMap<String,Any?> = mutableMapOf()
             var body = "null"
             val headers:MutableMap<String,Any?> = mutableMapOf()
-            val annotation = methods.first()
-            logger.warn("${methods.first().arguments.first().value}")
+            val multipart = dataModels.filter {
+                it.shortName.asString() == Multipart::class.simpleName
+            }
+            val annotation = dataModels.filter { it.shortName.asString() == Get::class.simpleName || it.shortName.asString() == Post::class.simpleName }.first()
+
+            logger.warn("${annotation.arguments.first().value}")
+            if(!multipart.none()) {
+                logger.warn("$symbolName is multipart")
+            }
 
             when(annotation.shortName.asString()){
                 Get::class.simpleName -> {
@@ -83,9 +90,15 @@ class ClassVisitor(private val logger: KSPLogger) : KSTopDownVisitor<OutputStrea
                 Post::class.simpleName -> {
                     method = "POST"
                     val arguments = annotation.arguments
-                    headers.plusAssign(
-                        "Content-Type" to "\"${(arguments.first { it.name?.asString() == "contentType" }.value ?: "application/json")}\""
-                    )
+                    if(!multipart.none()){
+                        headers.plusAssign(
+                            "Content-Type" to "\"${(arguments.first { it.name?.asString() == "contentType" }.value ?: "mutlipart/form-data")}\""
+                        )
+                    }else {
+                        headers.plusAssign(
+                            "Content-Type" to "\"${(arguments.first { it.name?.asString() == "contentType" }.value ?: "application/json")}\""
+                        )
+                    }
                     url = arguments.first { it.name?.asString() == "url" }.value as String
                 }
             }
